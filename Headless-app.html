@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Shopify Catalog & Slider</title>
+    <style>
+      body {
+        font-family: "Montserrat", Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background: #fdf6f0;
+        color: #222;
+      }
+      nav {
+        background: #eb3301;
+        padding: 16px 32px;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      }
+      nav h1 {
+        display: none;
+      }
+      .nav-left {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+      }
+      .nav-right {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+      }
+      nav button {
+        background: white;
+        color: #eb3301;
+        border: none;
+        padding: 10px 18px;
+        cursor: pointer;
+        border-radius: 24px;
+        font-weight: bold;
+        font-size: 15px;
+        transition: background 0.2s, color 0.2s;
+      }
+      nav button:hover {
+        background: #eb3301;
+        color: white;
+        border: 1px solid white;
+      }
+      .view {
+        display: none;
+        padding: 32px 5vw 32px 5vw;
+      }
+      .view.active {
+        display: block;
+      }
+      .collection-filter {
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .collection-filter label {
+        font-weight: 600;
+        color: #222;
+        font-size: 16px;
+      }
+      .collection-filter select {
+        padding: 8px 14px;
+        border-radius: 20px;
+        border: 1.5px solid #222;
+        font-size: 15px;
+        background: #fff;
+        color: #222;
+        font-weight: 600;
+        outline: none;
+        transition: border 0.2s;
+      }
+      .collection-filter select:focus {
+        border: 2px solid #222;
+      }
+      .catalogue-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 24px;
+      }
+      #productSearch {
+        flex: 1;
+        max-width: 340px;
+        padding: 10px 16px 10px 38px;
+        border-radius: 24px;
+        border: 1.5px solid rgba(0, 0, 0, 0);
+        font-size: 16px;
+        background: #fff
+          url('data:image/svg+xml;utf8,<svg fill="%23EB3301" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99c.41.41 1.09.41 1.5 0s.41-1.09 0-1.5l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>')
+          no-repeat 12px center;
+        color: #222;
+        font-family: inherit;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+        margin-left: auto;
+      }
+      #productSearch:focus {
+        border: 2px solid rgba(0, 0, 0, 0.03);
+      }
+      #products {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 32px;
+        margin-bottom: 32px;
+      }
+      .product {
+        background: #fff;
+        border-radius: 0;
+        box-shadow: none;
+        padding: 32px 18px 18px 18px;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        transition: box-shadow 0.2s, transform 0.2s;
+        position: relative;
+        min-height: 370px;
+        justify-content: flex-start;
+        overflow: visible;
+      }
+      .product-id {
+        position: absolute;
+        top: 10px;
+        left: 14px;
+        font-size: 11px;
+        color: #888;
+        background: rgba(255, 255, 255, 0.85);
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-family: "Montserrat", Arial, sans-serif;
+        z-index: 3;
+        pointer-events: none;
+      }
+      .product-img-float {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 180px;
+        margin-bottom: 18px;
+        position: relative;
+      }
+      .product-img-float img {
+        width: 170px;
+        height: 170px;
+        object-fit: contain;
+        background: #fff;
+        z-index: 2;
+        display: block;
+        margin: 0 auto;
+      }
+      .product-img-float::after {
+        content: "";
+        display: block;
+        position: absolute;
+        left: 50%;
+        bottom: 18px;
+        width: 70px;
+        height: 18px;
+        background: radial-gradient(
+          ellipse at center,
+          rgba(0, 0, 0, 0.1) 0%,
+          rgba(0, 0, 0, 0) 80%
+        );
+        transform: translateX(-50%);
+        z-index: 1;
+        border-radius: 50%;
+      }
+      .product-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        flex: 1;
+        gap: 4px;
+        margin-top: auto;
+      }
+      .product-title {
+        color: #eb3301;
+        font-size: 16px;
+        font-weight: 900;
+        text-transform: uppercase;
+        font-family: "Montserrat", Arial, sans-serif;
+        margin: 0 0 4px 0;
+        letter-spacing: 0.5px;
+        text-align: center;
+        line-height: 1.2;
+      }
+      .product-handle {
+        color: #888;
+        font-size: 12px;
+        margin-bottom: 10px;
+        text-align: center;
+        font-family: "Montserrat", Arial, sans-serif;
+      }
+      .product-price {
+        color: #222;
+        font-size: 15px;
+        font-family: "Montserrat", Arial, sans-serif;
+        font-weight: 700;
+        margin: 0 0 0 0;
+        text-align: center;
+        letter-spacing: 0.5px;
+      }
+      .product-btn {
+        margin-top: 14px;
+        background: #eb3301;
+        color: #fff;
+        border: none;
+        border-radius: 22px;
+        padding: 8px 32px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s;
+        font-family: "Montserrat", Arial, sans-serif;
+        display: block;
+        text-decoration: none;
+        width: auto;
+        min-width: 120px;
+        max-width: 80%;
+        text-align: center;
+      }
+      .product-btn:hover {
+        background: #fff;
+        color: #eb3301;
+        border: 1.5px solid #eb3301;
+      }
+      #carousel-container {
+        display: flex;
+        overflow-x: auto;
+        scroll-behavior: smooth;
+        gap: 24px;
+        padding-bottom: 10px;
+      }
+      #carousel-container .product {
+        min-width: 220px;
+        max-width: 240px;
+      }
+      .carousel-nav {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 10px;
+      }
+      .carousel-nav button {
+        background: #eb3301;
+        color: #fff;
+        border: none;
+        border-radius: 50%;
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        font-weight: bold;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+        transition: background 0.2s, color 0.2s;
+        cursor: pointer;
+      }
+      .carousel-nav button:hover {
+        background: #fff;
+        color: #eb3301;
+        border: 1.5px solid #eb3301;
+      }
+      .footer-custom {
+        width: 100%;
+        background: #fdf6f0;
+        color: #222;
+        text-align: center;
+        padding: 24px 0 18px 0;
+        font-size: 15px;
+        border-top: 1px solid #eee;
+        margin-top: 40px;
+      }
+      .footer-link {
+        color: #eb3301;
+        text-decoration: none;
+        font-weight: 700;
+        margin: 0 8px;
+        transition: color 0.2s;
+      }
+      .footer-link:hover {
+        color: #222;
+        text-decoration: underline;
+      }
+      /* Market Selector Style */
+      #marketSelector {
+        padding: 8px 32px 8px 14px;
+        border-radius: 22px;
+        border: none;
+        font-size: 15px;
+        background: #eb3301
+          url('data:image/svg+xml;utf8,<svg fill="white" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>')
+          no-repeat right 12px center/20px 20px;
+        color: #fff;
+        font-weight: 700;
+        outline: none;
+        appearance: none;
+        -webkit-appearance: none;
+        min-width: 120px;
+        margin-left: 10px;
+        transition: background 0.2s, color 0.2s;
+        cursor: pointer;
+      }
+      #marketSelector option {
+        color: #eb3301;
+        background: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <div class="nav-left">
+        <a
+          class="header__heading-link"
+          href="/"
+          aria-label="Aperol Official Online Shop"
+        >
+          <img
+            srcset="
+              //h45gd5vft3dhaf71-72859058518.shopifypreview.com/cdn/shop/files/Logo-aperol-newlogo-cream.png?v=1741277156&amp;width=90  1x,
+              //h45gd5vft3dhaf71-72859058518.shopifypreview.com/cdn/shop/files/Logo-aperol-newlogo-cream.png?v=1741277156&amp;width=180 2x
+            "
+            src="//h45gd5vft3dhaf71-72859058518.shopifypreview.com/cdn/shop/files/Logo-aperol-newlogo-cream.png?v=1741277156&amp;width=90"
+            loading="lazy"
+            class="Yuva-logo header__heading-logo"
+            width="90"
+            height="45"
+            alt="Aperol Official Online Shop"
+          />
+        </a>
+      </div>
+      <div class="nav-right">
+        <button onclick="switchView('catalogue')">Catalog</button>
+        <button onclick="switchView('slider')">Slider</button>
+        <select id="marketSelector" onchange="reloadMarketView()">
+          <option value="DE-de">Germany (DE)</option>
+          <option value="DE-at">Austria (AT)</option>
+          <option value="BE-fr">Belgium (FR)</option>
+          <option value="BE-nl">Belgium (NL)</option>
+          <option value="NL-nl">Netherlands (NL)</option>
+          <option value="IT-it">Italy (IT)</option>
+          <option value="ES-es">Spain (ES)</option>
+          <option value="UK-en">UK (EN)</option>
+          <option value="US-en">USA (EN)</option>
+        </select>
+      </div>
+    </nav>
+
+    <div id="catalogue" class="view active">
+      <div class="collection-filter">
+        <label for="collectionSelector">Collection :</label>
+        <select id="collectionSelector" onchange="reloadData()">
+          <option value="">All collections</option>
+        </select>
+      </div>
+      <div class="catalogue-header">
+        <h2>Products Catalog</h2>
+        <input
+          type="search"
+          id="productSearch"
+          placeholder="Search a product..."
+          oninput="filterProducts()"
+        />
+      </div>
+      <div id="products"></div>
+    </div>
+
+    <div id="slider" class="view">
+      <div class="collection-filter">
+        <label for="collectionSelectorSlider">Collection :</label>
+        <select id="collectionSelectorSlider" onchange="reloadDataSlider()">
+          <option value="">All collections</option>
+        </select>
+      </div>
+      <h2>Products Slider</h2>
+      <div id="carousel-container"></div>
+      <div class="carousel-nav">
+        <button onclick="scrollCarousel(-1)" aria-label="Précédent">
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M15.5 19l-7-7 7-7"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+        <button onclick="scrollCarousel(1)" aria-label="Suivant">
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M8.5 5l7 7-7 7"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <footer class="footer-custom">
+      <div>
+        <a href="mailto:leo.carre@horrea.fr" class="footer-link"
+          >leo.carre@horrea.fr</a
+        >
+        &nbsp;|&nbsp;
+        <a href="https://shopify.dev/docs" class="footer-link" target="_blank"
+          >See the documentation</a
+        >
+      </div>
+    </footer>
+
+    <script>
+      const storefrontAccessToken = "shpat_1234567890";
+      const shopDomain = "your-shop-domain.myshopify.com";
+
+      // Fonction pour extraire l'ID numérique du produit depuis le GID Shopify
+      function extractProductId(gid) {
+        if (!gid) return "";
+        const parts = gid.split("/");
+        return parts[parts.length - 1];
+      }
+
+      // Fonction pour obtenir la traduction du bouton selon la langue du marché
+      function getProductButtonLabel() {
+        const market = document.getElementById("marketSelector").value;
+        // On récupère la langue à partir de la valeur du select (ex: BE-fr => fr)
+        let lang = "fr";
+        if (market) {
+          const parts = market.split("-");
+          if (parts.length === 2) {
+            lang = parts[1].toLowerCase();
+          }
+        }
+        switch (lang) {
+          case "fr":
+            return "Voir le produit";
+          case "de":
+            return "Produkt ansehen";
+          case "nl":
+            return "Bekijk product";
+          case "it":
+            return "Vedi prodotto";
+          case "es":
+            return "Ver producto";
+          case "en":
+            return "View product";
+          default:
+            return "Voir le produit";
+        }
+      }
+
+      const markets = {
+        "DE-de": { country: "DE", language: "DE" },
+        "DE-at": { country: "AT", language: "DE" },
+        "BE-fr": { country: "BE", language: "FR" },
+        "BE-nl": { country: "BE", language: "NL" },
+        "NL-nl": { country: "NL", language: "NL" },
+        "IT-it": { country: "IT", language: "IT" },
+        "ES-es": { country: "ES", language: "ES" },
+        "UK-en": { country: "GB", language: "EN" },
+        "US-en": { country: "US", language: "EN" },
+      };
+
+      let afterCursor = null;
+      let beforeCursor = null;
+      let hasNextPage = false;
+      let hasPreviousPage = false;
+
+      function switchView(view) {
+        document
+          .querySelectorAll(".view")
+          .forEach((div) => div.classList.remove("active"));
+        document.getElementById(view).classList.add("active");
+        if (view === "slider") {
+          reloadDataSlider();
+        }
+      }
+
+      function scrollCarousel(direction) {
+        const container = document.getElementById("carousel-container");
+        container.scrollBy({ left: direction * 220, behavior: "smooth" });
+      }
+
+      function getCurrentMarket() {
+        const selected = document.getElementById("marketSelector").value;
+        return markets[selected];
+      }
+
+      function reloadData() {
+        fetchProducts();
+        fetchCollections("collectionSelector");
+      }
+
+      function reloadDataSlider() {
+        fetchCarouselProducts();
+        fetchCollections("collectionSelectorSlider");
+      }
+
+      function prevPage() {
+        if (hasPreviousPage) fetchProducts({ before: beforeCursor, last: 10 });
+      }
+      function nextPage() {
+        if (hasNextPage) fetchProducts({ after: afterCursor, first: 10 });
+      }
+
+      async function fetchProducts() {
+        const market = getCurrentMarket();
+        const collectionHandle =
+          document.getElementById("collectionSelector").value;
+        let query, variables;
+        if (collectionHandle) {
+          query = `
+        query getCollectionProducts($handle: String!, $country: CountryCode, $language: LanguageCode) @inContext(country: $country, language: $language) {
+          collectionByHandle(handle: $handle) {
+            products(first: 250) {
+              edges {
+                cursor
+                node {
+                  id title handle
+                  images(first: 1) { edges { node { src altText } } }
+                  variants(first: 1) {
+                    edges { node { price { amount currencyCode } } }
+                  }
+                }
+              }
+            }
+          }
+        }
+      `;
+          variables = {
+            handle: collectionHandle,
+            country: market.country,
+            language: market.language,
+          };
+        } else {
+          query = `
+        query getProducts($country: CountryCode, $language: LanguageCode) @inContext(country: $country, language: $language) {
+          products(first: 250) {
+            edges {
+              cursor
+              node {
+                id title handle
+                images(first: 1) { edges { node { src altText } } }
+                variants(first: 1) {
+                  edges { node { price { amount currencyCode } } }
+                }
+              }
+            }
+          }
+        }
+      `;
+          variables = {
+            country: market.country,
+            language: market.language,
+          };
+        }
+
+        try {
+          const res = await fetch(
+            `https://${shopDomain}/api/2024-04/graphql.json`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-Shopify-Storefront-Access-Token": storefrontAccessToken,
+              },
+              body: JSON.stringify({ query, variables }),
+            }
+          );
+
+          const { data, errors } = await res.json();
+          if (errors) throw new Error(errors.map((e) => e.message).join(", "));
+
+          let products;
+          if (collectionHandle) {
+            products = data.collectionByHandle?.products?.edges || [];
+          } else {
+            products = data.products.edges;
+          }
+
+          // Stocker les produits pour le filtrage client
+          window._currentProducts = products;
+          renderFilteredProducts();
+        } catch (err) {
+          console.error("Erreur API:", err);
+          document.getElementById("products").innerHTML =
+            "<p>Erreur lors de la récupération des produits.</p>";
+        }
+      }
+
+      // Fonction pour filtrer et afficher les produits selon la recherche
+      function filterProducts() {
+        renderFilteredProducts();
+      }
+
+      function renderFilteredProducts() {
+        const search = (
+          document.getElementById("productSearch")?.value || ""
+        ).toLowerCase();
+        const container = document.getElementById("products");
+        const products = window._currentProducts || [];
+        const filtered = !search
+          ? products
+          : products.filter((p) => p.node.title.toLowerCase().includes(search));
+        container.innerHTML = filtered
+          .map((p) => {
+            const node = p.node;
+            const img = node.images.edges[0]?.node;
+            const variant = node.variants.edges[0]?.node;
+            // Format prix européen
+            let price = "";
+            if (variant) {
+              if (variant.price.currencyCode === "GBP") {
+                price = Number(variant.price.amount)
+                  .toLocaleString("en-GB", {
+                    style: "currency",
+                    currency: "GBP",
+                    currencyDisplay: "symbol",
+                  })
+                  .replace(/\s*GBP?\s*/i, "")
+                  .trim();
+              } else {
+                price = Number(variant.price.amount).toLocaleString("fr-FR", {
+                  style: "currency",
+                  currency: variant.price.currencyCode,
+                });
+              }
+            }
+            const url = getProductUrl(node.handle);
+            return `<div class="product">
+      <span class="product-id">Product ID : ${extractProductId(node.id)}</span>
+      <div class="product-img-float">
+        <img src="${img?.src || ""}" alt="${img?.altText || node.title}" />
+      </div>
+      <div class="product-info">
+        <div class="product-title">${node.title}</div>
+        <div class="product-handle">${node.handle}</div>
+        <div class="product-price">${price}</div>
+        <a class="product-btn" href="${url}" target="_blank">${getProductButtonLabel()}</a>
+      </div>
+    </div>`;
+          })
+          .join("");
+      }
+
+      async function fetchCarouselProducts() {
+        const market = getCurrentMarket();
+        const collectionHandle = document.getElementById(
+          "collectionSelectorSlider"
+        ).value;
+        let query, variables;
+        if (collectionHandle) {
+          query = `
+        query getCollectionProducts($handle: String!, $country: CountryCode, $language: LanguageCode) @inContext(country: $country, language: $language) {
+          collectionByHandle(handle: $handle) {
+            products(first: 250) {
+              edges {
+                node {
+                  id
+                  title
+                  handle
+                  images(first: 1) { edges { node { src altText } } }
+                  variants(first: 1) {
+                    edges { node { price { amount currencyCode } } }
+                  }
+                }
+              }
+            }
+          }
+        }
+      `;
+          variables = {
+            handle: collectionHandle,
+            country: market.country,
+            language: market.language,
+          };
+        } else {
+          query = `
+        query getProducts($country: CountryCode, $language: LanguageCode) @inContext(country: $country, language: $language) {
+          products(first: 250) {
+            edges {
+              node {
+                id
+                title
+                handle
+                images(first: 1) { edges { node { src altText } } }
+                variants(first: 1) {
+                  edges { node { price { amount currencyCode } } }
+                }
+              }
+            }
+          }
+        }
+      `;
+          variables = {
+            country: market.country,
+            language: market.language,
+          };
+        }
+
+        try {
+          const res = await fetch(
+            `https://${shopDomain}/api/2024-04/graphql.json`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-Shopify-Storefront-Access-Token": storefrontAccessToken,
+              },
+              body: JSON.stringify({ query, variables }),
+            }
+          );
+
+          const { data, errors } = await res.json();
+          if (errors) throw new Error(errors.map((e) => e.message).join(", "));
+
+          let products;
+          if (collectionHandle) {
+            products = data.collectionByHandle?.products?.edges || [];
+          } else {
+            products = data.products.edges;
+          }
+
+          const container = document.getElementById("carousel-container");
+          container.innerHTML = products
+            .map((p) => {
+              const node = p.node;
+              const img = node.images.edges[0]?.node;
+              const variant = node.variants.edges[0]?.node;
+              // Format prix européen
+              let price = "";
+              if (variant) {
+                if (variant.price.currencyCode === "GBP") {
+                  price = Number(variant.price.amount)
+                    .toLocaleString("en-GB", {
+                      style: "currency",
+                      currency: "GBP",
+                      currencyDisplay: "symbol",
+                    })
+                    .replace(/\s*GBP?\s*/i, "")
+                    .trim();
+                } else {
+                  price = Number(variant.price.amount).toLocaleString("fr-FR", {
+                    style: "currency",
+                    currency: variant.price.currencyCode,
+                  });
+                }
+              }
+              const url = getProductUrl(node.handle);
+              return `<div class="product">
+        <span class="product-id">Product ID : ${extractProductId(
+          node.id
+        )}</span>
+        <div class="product-img-float">
+          <img src="${img?.src || ""}" alt="${img?.altText || node.title}" />
+        </div>
+        <div class="product-info">
+          <div class="product-title">${node.title}</div>
+          <div class="product-handle">${node.handle}</div>
+          <div class="product-price">${price}</div>
+          <a class="product-btn" href="${url}" target="_blank">${getProductButtonLabel()}</a>
+        </div>
+      </div>`;
+            })
+            .join("");
+        } catch (err) {
+          console.error("Erreur API:", err);
+          document.getElementById("carousel-container").innerHTML =
+            "<p>Erreur lors de la récupération des produits.</p>";
+        }
+      }
+
+      // Nouvelle fonction pour charger les collections
+      async function fetchCollections(selectId = "collectionSelector") {
+        const market = getCurrentMarket();
+        const query = `
+        query getCollections($country: CountryCode, $language: LanguageCode) @inContext(country: $country, language: $language) {
+          collections(first: 50) {
+            edges {
+              node {
+                id
+                title
+                handle
+              }
+            }
+          }
+        }
+      `;
+        const variables = {
+          country: market.country,
+          language: market.language,
+        };
+        try {
+          const select = document.getElementById(selectId);
+          const previousValue = select.value;
+          const res = await fetch(
+            `https://${shopDomain}/api/2024-04/graphql.json`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-Shopify-Storefront-Access-Token": storefrontAccessToken,
+              },
+              body: JSON.stringify({ query, variables }),
+            }
+          );
+          const { data, errors } = await res.json();
+          if (errors) throw new Error(errors.map((e) => e.message).join(", "));
+          select.innerHTML =
+            '<option value="">All collections</option>' +
+            data.collections.edges
+              .map(
+                (e) =>
+                  `<option value="${e.node.handle}">${e.node.title}</option>`
+              )
+              .join("");
+          // Réappliquer la sélection précédente si possible
+          if ([...select.options].some((opt) => opt.value === previousValue)) {
+            select.value = previousValue;
+          }
+        } catch (err) {
+          console.error("Error loading collections:", err);
+        }
+      }
+
+      function reloadMarketView() {
+        if (document.getElementById("catalogue").classList.contains("active")) {
+          reloadData();
+        } else if (
+          document.getElementById("slider").classList.contains("active")
+        ) {
+          reloadDataSlider();
+        }
+      }
+
+      function getProductUrl(handle) {
+        const market = document.getElementById("marketSelector").value;
+        let prefix = "";
+        if (market && market.toLowerCase() !== "us-en") {
+          let lang, country;
+          if (market.includes("-")) {
+            [country, lang] = market.split("-");
+            // Cas particulier pour UK
+            if (country.toLowerCase() === "uk" && lang.toLowerCase() === "en") {
+              prefix = "/en-gb";
+            } else {
+              prefix = "/" + `${lang.toLowerCase()}-${country.toLowerCase()}`;
+            }
+          } else {
+            prefix = "/" + market.toLowerCase();
+          }
+        }
+        return `https://shop.aperol.com${prefix}/products/${handle}`;
+      }
+
+      // Initial load
+      reloadData();
+    </script>
+  </body>
+</html>

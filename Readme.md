@@ -1,5 +1,7 @@
 # Shopify Aperol Demo – README
 
+![Plateforme Shopify Headless](Plateform_Screen.png)
+
 ## Purpose
 
 This site was created to demonstrate the feasibility of:
